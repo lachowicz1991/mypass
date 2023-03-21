@@ -31,6 +31,7 @@ def generate_password():
     password_entry.insert(0, password)
     pyperclip.copy(password)
 
+
 # ---------------------------- SAVE PASSWORD ------------------------------- #
 def save_password():
     web = website_entry.get()
@@ -44,23 +45,36 @@ def save_password():
     elif len(password) < 6:
         messagebox.showinfo(title="Wtf", message="Shit password, less than 6 characters, try harder.")
     else:
-        # is_correct = messagebox.askokcancel(title='Confirm',
-        #                                     message=f'Website:{web}\nEmail:{email}\nPassword:{password}')
-        # if is_correct:
-        try:
-            with open('password.json', 'r') as f:
-                data = json.load(f)
+        is_correct = messagebox.askokcancel(title='Confirm',
+                                            message=f'Website:{web}\nEmail:{email}\nPassword:{password}')
+        if is_correct:
+            try:
+                with open('password.json', 'r') as f:
+                    data = json.load(f)
 
-        except FileNotFoundError:
-            with open('password.json', 'w') as f:
-                json.dump(new_data, f, indent=4)
-        else:
-            data.update(new_data)
-            with open('password.json', 'w') as f:
-                json.dump(data, f, indent=4)
-        finally:
-            website_entry.delete(0, tk.END)
-            password_entry.delete(0, tk.END)
+            except FileNotFoundError:
+                with open('password.json', 'w') as f:
+                    json.dump(new_data, f, indent=4)
+            else:
+                data.update(new_data)
+                with open('password.json', 'w') as f:
+                    json.dump(data, f, indent=4)
+            finally:
+                website_entry.delete(0, tk.END)
+                password_entry.delete(0, tk.END)
+# ---------------------------- SAVE PASSWORD ------------------------------- #
+def load_data():
+    web = website_entry.get()
+    try:
+        with open('password.json', 'r') as f:
+            data = json.load(f)
+            if web in data:
+                pyperclip.copy(data[web]['password'])
+                messagebox.showinfo(title=web, message=f"Email:{data[web]['email']}\nPassword:{data[web]['password']}")
+            else:
+                messagebox.showinfo(title="Error", message=f'"{web}" not found.')
+    except FileNotFoundError as f:
+        messagebox.showinfo(title="FileNotFoundError", message=str(f))
 
 
 # ---------------------------- UI SETUP ------------------------------- #
@@ -74,9 +88,11 @@ canvas.create_image(80, 80, image=img)
 
 web_label = tk.Label(text="Website:")
 web_label.grid(column=0, row=1)
-website_entry = tk.Entry(width=38)
+website_entry = tk.Entry(width=18)
 website_entry.focus()
-website_entry.grid(column=1, row=1, columnspan=2)
+website_entry.grid(column=1, row=1)
+website_search = tk.Button(text="Search", width=16, command=load_data)
+website_search.grid(column=2, row=1, sticky='w')
 
 email_label = tk.Label(text="Email:")
 email_label.grid(column=0, row=2)
